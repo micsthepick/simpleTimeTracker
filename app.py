@@ -99,7 +99,8 @@ class SimpleTimeTracker(QMainWindow):
         self.start_time = datetime.now()
         self.elapsed_time = 0
         self.timer.start(self.timer_interval)
-        self.log.append(f"Started at {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}: {self.description.toPlainText()}")
+        self.saved_task = self.description.toPlainText()
+        self.log.append(f"Started at {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}: {self.saved_task}")
         self.write_log_to_file()  # Write to file
 
     def _stop_current_task(self):
@@ -107,7 +108,7 @@ class SimpleTimeTracker(QMainWindow):
         end_time = datetime.now()
         duration = end_time - self.start_time
         formatted_duration = self.format_timedelta(duration)
-        self.log.append(f"Ended at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Duration: {formatted_duration}): {self.description.toPlainText()}")
+        self.log.append(f"Ended at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Duration: {formatted_duration}): {self.saved_task}")
         self.write_log_to_file()  # Write to file
 
     def start_timer(self):
