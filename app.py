@@ -53,6 +53,16 @@ class SimpleTimeTracker(QMainWindow):
         layout.addWidget(self.lap_button)
         layout.addWidget(QLabel("Log:"))
         layout.addWidget(self.log)
+        
+        self.description.setFixedHeight(60)  # Adjust the value as needed
+        
+        # Set stretch factors
+        layout.setStretchFactor(self.description, 0)
+        layout.setStretchFactor(self.timer_display, 0)
+        layout.setStretchFactor(self.start_button, 0)
+        layout.setStretchFactor(self.stop_button, 0)
+        layout.setStretchFactor(self.lap_button, 0)
+        layout.setStretchFactor(self.log, 1)
 
         central_widget = QWidget()
         central_widget.setLayout(layout)
