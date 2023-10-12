@@ -27,7 +27,7 @@ class SimpleTimeTracker(QMainWindow):
         font.setPointSize(20)  # Adjust the size as needed
         font.setBold(True)
         self.timer_display.setFont(font)
-        self.timer_display.setStyleSheet("color: red")  # Change the color as desired
+        self.timer_display.setStyleSheet("color: black")  # black when inactive, red when active
 
 
         self.start_button = QPushButton("Start", self)
@@ -69,9 +69,8 @@ class SimpleTimeTracker(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Timer setup
-        self.break_interval_seconds = break_interval * 60
+        self.break_interval = timedelta(minutes=break_interval)
         self.timer_interval = 1000  # 1 second in milliseconds
-        self.elapsed_time = 0  # Time in seconds since the timer started
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer_display)
@@ -82,6 +81,8 @@ class SimpleTimeTracker(QMainWindow):
             file.write(self.log.toPlainText())
             
     def closeEvent(self, event):
+        if self.timer_running:
+            self.stop_timer()
         self.write_log_to_file()
         event.accept()
 
@@ -93,13 +94,15 @@ class SimpleTimeTracker(QMainWindow):
     def update_timer_display(self):
         if not self.timer_running:
             return
-        self.elapsed_time += 1
-        formatted_time = self.format_seconds(self.elapsed_time)
+        time_now = datetime.now()
+        self.elapsed_time_raw = time_now - self.start_time
+        self.elapsed_time_seconds = self.elapsed_time_raw.seconds
+        formatted_time = self.format_seconds(self.elapsed_time_seconds)
         self.timer_display.setText(formatted_time)
 
-        # Check for the 30-minute mark for breaks
-        if self.elapsed_time % self.break_interval_seconds == 0:
+        if (time_now - self.last_notification_time) >= self.break_interval:
             self.prompt_break()
+            self.last_notification_time = time_now
 
     def format_timedelta(self, duration: timedelta) -> str:
         total_seconds = int(duration.total_seconds())
@@ -107,7 +110,6 @@ class SimpleTimeTracker(QMainWindow):
         
     def _start_new_task(self):
         self.start_time = datetime.now()
-        self.elapsed_time = 0
         self.timer.start(self.timer_interval)
         self.saved_task = self.description.toPlainText()
         self.log.append(f"Started at {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}: {self.saved_task}")
@@ -123,12 +125,15 @@ class SimpleTimeTracker(QMainWindow):
 
     def start_timer(self):
         if not self.timer_running:
+            self.last_notification_time = datetime.now()
             self._start_new_task()
+            self.timer_display.setStyleSheet("color: red")  # black when inactive, red when active
             self.timer_running = True
 
     def stop_timer(self):
         if self.timer_running:
             self._stop_current_task()
+            self.timer_display.setStyleSheet("color: black")  # black when inactive, red when active
             self.timer_display.setText("00:00:00")
             self.timer_running = False
     
